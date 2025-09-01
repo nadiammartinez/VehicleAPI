@@ -17,4 +17,21 @@ public class VehiclesController : ControllerBase
     {
         return "value";
     }
+
+
+[HttpPost]
+public void Post([FromBody] string value)
+{
+}
+
+[HttpPut("{id}")]
+public void Put(int id, [FromBody] string value)
+{
+}
+
+[HttpDelete("{id}")]
+public void Delete(int id)
+{
+}
+
 }
