@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using VehicleAPI.Models;
 
 namespace VehicleAPI.Controllers;
 
@@ -6,32 +7,67 @@ namespace VehicleAPI.Controllers;
 [ApiController]
 public class VehiclesController : ControllerBase
 {
+    private static readonly List<Vehicle> Data = [];
+    
     [HttpGet]
-    public IEnumerable<string> Get()
+    public ActionResult<IEnumerable<Vehicle>> Get(string? make, int? year)
     {
-        return new string[] { "value1", "value2" };
+        var result = Data.AsEnumerable();
+
+        if (!string.IsNullOrWhiteSpace(make))
+        {
+            result = result.Where(v  => 
+                v.Make.Contains (make, StringComparison.OrdinalIgnoreCase));
+                
+                
+        }
+
+        if (year > 0)
+
+        {
+            result = result.Where (v =>  v.Year == year);
+        }
+
+        return Ok(result.ToList());
     }
 
-    [HttpGet("{id}")]
-    public string Get(int id)
+    [HttpGet("{id:guid}")]
+    public ActionResult<Vehicle> GetById(Guid id)
     {
-        return "value";
+        var vehicle = Data.FirstOrDefault(v => v.Id == id);
+        if (vehicle == null) return NotFound();
+        return Ok(vehicle);
     }
 
 
 [HttpPost]
-public void Post([FromBody] string value)
+public ActionResult<Vehicle> Create(Vehicle vehicle)
 {
+    Data.Add(vehicle);
+    return CreatedAtAction(nameof(GetById), new { id = vehicle.Id }, vehicle);
 }
 
-[HttpPut("{id}")]
-public void Put(int id, [FromBody] string value)
+[HttpPut("{id:guid}")]
+public IActionResult Replace(Guid id, Vehicle vehicle)
 {
+    var existing = Data.FirstOrDefault(v => v.Id == id);
+    
+    if (existing == null) return NotFound();
+    existing.Make = vehicle.Make;
+    existing.Model = vehicle.Model;
+    existing.Year = vehicle.Year;
+    
+    return NoContent();
 }
 
-[HttpDelete("{id}")]
-public void Delete(int id)
+[HttpDelete("{id:guid}")]
+public IActionResult Delete(Guid id)
 {
+    var existing = Data.FirstOrDefault(v => v.Id == id);
+    if (existing == null) return NotFound();
+    
+    Data.Remove(existing);
+    return NoContent();
 }
 
 }
